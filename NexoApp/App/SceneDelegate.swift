@@ -19,13 +19,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
         let window = UIWindow(windowScene: windowScene)
+        let navigationController = UINavigationController()
         
-        let jobListViewController = JobListViewController()
-        let navigationController = UINavigationController(rootViewController: jobListViewController)
+        let coordinator = JobListCoordinator(navigationController: navigationController)
+        coordinator.start()
         
         window.rootViewController = navigationController
         window.makeKeyAndVisible()
-        
         self.window = window
     }
 

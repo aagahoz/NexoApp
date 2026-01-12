@@ -7,17 +7,24 @@
 
 @testable import NexoApp
 
-import Foundation
-
+/// Testlerde retry senaryosunu simüle etmek için kullanılan repository.
+/// İlk fetch hata döndürür, sonraki fetch başarılı veri döndürür.
 final class FakeJobRepository: JobRepository {
-    
+
+    private var fetchCount = 0
     let jobsToReturn: [Job]
-    
-    init(jobsToReturn: [Job]) {
+    let errorToThrow: JobError?
+
+    init(jobsToReturn: [Job], errorToThrow: JobError? = nil) {
         self.jobsToReturn = jobsToReturn
+        self.errorToThrow = errorToThrow
     }
-    
-    func fetchJobs() -> [Job] {
-        jobsToReturn
+
+    func fetchJobs() async throws -> [Job] {
+        fetchCount += 1
+        if fetchCount == 1, let error = errorToThrow {
+            throw error
+        }
+        return jobsToReturn
     }
 }

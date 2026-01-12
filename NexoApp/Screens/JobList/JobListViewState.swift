@@ -9,5 +9,5 @@ enum JobListViewState {
     case loading
     case empty
     case loaded(jobs: [Job])
-    case error(message: String)
+    case error(message: String, retry: (() -> Void)? = nil)
 }

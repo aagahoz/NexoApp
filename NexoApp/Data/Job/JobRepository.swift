@@ -6,5 +6,5 @@
 //
 
 protocol JobRepository {
-    func fetchJobs() -> [Job]
+    func fetchJobs() async throws -> [Job]
 }
