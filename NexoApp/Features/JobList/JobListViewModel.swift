@@ -15,7 +15,7 @@ final class JobListViewModel {
     }
 
     var onStateChange: ((JobListViewState) -> Void)?
-    var onJobSelected: ((Job) -> Void)?  // <- yeni
+    var onJobSelected: ((Job) -> Void)?
 
     init(repository: JobRepository) {
         self.repository = repository
