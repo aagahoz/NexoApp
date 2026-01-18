@@ -10,21 +10,39 @@ import UIKit
 final class JobApplicationListCoordinator: Coordinator {
 
     var navigationController: UINavigationController
+    private let repository: JobApplicationRepository
 
-    init(navigationController: UINavigationController) {
+    init(
+        navigationController: UINavigationController,
+        repository: JobApplicationRepository
+    ) {
         self.navigationController = navigationController
+        self.repository = repository
     }
 
     func start() {
-        let viewModel = JobApplicationListViewModel(repository: MockJobApplicationRepository())
-        let jobApplicationListVC = JobApplicationListViewController(viewModel: viewModel)
+        let viewModel = JobApplicationListViewModel(
+            repository: repository
+        )
+        let jobApplicationListVC = JobApplicationListViewController(
+            viewModel: viewModel
+        )
         
-        // Coordinator’ı viewModel’a bağlayarak seçilen job’u handle edeceğiz
         viewModel.onJobApplicationSelected = { [weak self] jobApplication in
             self?.showJobApplicationDetail(jobApplication: jobApplication)
         }
+        
+        viewModel.onAddTapped = { [weak self] in
+            self?.showAddJobApplication()
+        }
 
         navigationController.pushViewController(jobApplicationListVC, animated: true)
+    }
+    
+    func showAddJobApplication() {
+        let viewModel = AddJobApplicationViewModel(repository: repository)
+        let vc = AddJobApplicationViewController(viewModel: viewModel)
+        navigationController.pushViewController(vc, animated: true)
     }
 
     private func showJobApplicationDetail(jobApplication: JobApplication) {

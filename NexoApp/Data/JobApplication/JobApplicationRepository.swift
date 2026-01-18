@@ -7,4 +7,5 @@
 
 protocol JobApplicationRepository {
     func fetchJobApplications() async throws -> [JobApplication]
+    func addJobApplication(_ application: JobApplication) async throws
 }

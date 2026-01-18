@@ -15,6 +15,7 @@ final class JobApplicationListViewModel {
     }
 
     var onStateChange: ((JobApplicationListViewState) -> Void)?
+    var onAddTapped: (() -> Void)?
     var onJobApplicationSelected: ((JobApplication) -> Void)?
 
     init(repository: JobApplicationRepository) {

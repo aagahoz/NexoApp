@@ -11,9 +11,12 @@ final class AppCoordinator: Coordinator {
 
     var navigationController: UINavigationController
     private var childCoordinators: [Coordinator] = []
+    
+    private let jobapplicationRepository: JobApplicationRepository
 
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
+        self.jobapplicationRepository = MockJobApplicationRepository()
     }
 
     func start() {
@@ -22,10 +25,12 @@ final class AppCoordinator: Coordinator {
 
     private func showJobApplicationList() {
         let jobApplicationListCoordinator = JobApplicationListCoordinator(
-            navigationController: navigationController
+            navigationController: navigationController,
+            repository: jobapplicationRepository
         )
 
         childCoordinators.append(jobApplicationListCoordinator)
         jobApplicationListCoordinator.start()
     }
 }
+                             

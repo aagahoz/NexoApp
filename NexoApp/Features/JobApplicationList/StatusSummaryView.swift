@@ -24,14 +24,14 @@ final class StatusSummaryView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func update(with applications: [JobApplication]) {
-        let grouped = Dictionary(grouping: applications, by: { $0.status })
-
-        for status in JobApplicationStatus.allCases {
-            let count = grouped[status]?.count ?? 0
-            cards[status]?.configure(status: status, count: count)
-        }
-    }
+    func update(with viewModel: StatusSummaryViewModel) {
+           for item in viewModel.items {
+               cards[item.status]?.configure(
+                   status: item.status,
+                   count: item.count
+               )
+           }
+       }
 
     private func setupLayout() {
         addSubview(scrollView)

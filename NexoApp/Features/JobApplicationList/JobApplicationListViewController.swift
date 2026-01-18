@@ -50,15 +50,31 @@ final class JobApplicationListViewController: UIViewController {
 
         view.backgroundColor = .systemBackground
         title = "Job Applications"
+        
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            barButtonSystemItem: .add,
+            target: self,
+            action: #selector(addTapped)
+        )
 
         setupHeader()
         setupTableView()
         setupOverlays()
         bindViewModel()
-
-        Task { await viewModel.load() }
+        
+        Task {
+            await viewModel.load()
+        }
     }
-
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        Task {
+            await viewModel.load()
+        }
+    }
+    
     // MARK: - Setup
 
     private func setupHeader() {
@@ -107,6 +123,10 @@ final class JobApplicationListViewController: UIViewController {
             loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
     }
+    
+    @objc private func addTapped() {
+        viewModel.onAddTapped?()
+    }
 
     // MARK: - Binding
 
@@ -125,25 +145,31 @@ final class JobApplicationListViewController: UIViewController {
         case .loading:
             tableView.isHidden = true
             emptyLabel.isHidden = true
+            headerView.isHidden = true
             loadingIndicator.startAnimating()
 
         case .empty:
             loadingIndicator.stopAnimating()
             tableView.isHidden = true
+            headerView.isHidden = true
             emptyLabel.isHidden = false
 
         case .loaded(let applications):
             loadingIndicator.stopAnimating()
             emptyLabel.isHidden = true
+            headerView.isHidden = false
             tableView.isHidden = false
             tableView.reloadData()
-            headerView.update(with: applications)
+            let summaryViewModel = StatusSummaryViewModel(
+                applications: applications
+            )
+            headerView.update(with: summaryViewModel)
 
         case .error(let message, let retry):
             loadingIndicator.stopAnimating()
             tableView.isHidden = true
             emptyLabel.isHidden = true
-
+            headerView.isHidden = true
             let alert = UIAlertController(
                 title: "Error",
                 message: message,
