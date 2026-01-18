@@ -1,5 +1,5 @@
 //
-//  JobDetailViewController.swift
+//  JobApplicationDetailViewController.swift
 //  NexoApp
 //
 //  Created by Agah Ozdemir on 11.01.2026.
@@ -7,12 +7,12 @@
 
 import UIKit
 
-final class JobDetailViewController: UIViewController {
+final class JobApplicationDetailViewController: UIViewController {
 
-    private let job: Job
+    private let jobApplication: JobApplication
 
-    init(job: Job) {
-        self.job = job
+    init(jobApplication: JobApplication) {
+        self.jobApplication = jobApplication
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -23,6 +23,6 @@ final class JobDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        title = job.title
+        title = jobApplication.title
     }
 }

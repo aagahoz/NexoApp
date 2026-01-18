@@ -17,15 +17,15 @@ final class AppCoordinator: Coordinator {
     }
 
     func start() {
-        showJobList()
+        showJobApplicationList()
     }
 
-    private func showJobList() {
-        let jobListCoordinator = JobListCoordinator(
+    private func showJobApplicationList() {
+        let jobApplicationListCoordinator = JobApplicationListCoordinator(
             navigationController: navigationController
         )
 
-        childCoordinators.append(jobListCoordinator)
-        jobListCoordinator.start()
+        childCoordinators.append(jobApplicationListCoordinator)
+        jobApplicationListCoordinator.start()
     }
 }
