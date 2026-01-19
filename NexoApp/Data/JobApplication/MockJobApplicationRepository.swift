@@ -17,7 +17,7 @@ actor MockJobApplicationRepository: JobApplicationRepository {
     func fetchJobApplications() async throws -> [JobApplication] {
 //        throw JobApplicationError.network
         
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
+//        try? await Task.sleep(nanoseconds: 1_000_000_000)
 
         return applications
     }

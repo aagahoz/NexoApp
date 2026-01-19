@@ -16,7 +16,10 @@ final class AppCoordinator: Coordinator {
 
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
-        self.jobapplicationRepository = MockJobApplicationRepository()
+//        self.jobapplicationRepository = MockJobApplicationRepository()
+        self.jobapplicationRepository =   LocalJobApplicationRepository(
+            localDataSource: CoreDataJobApplicationLocalDataSource()
+        )
     }
 
     func start() {

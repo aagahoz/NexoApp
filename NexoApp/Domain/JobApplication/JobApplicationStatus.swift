@@ -5,7 +5,7 @@
 //  Created by Agah Ozdemir on 15.01.2026.
 //
 
-enum JobApplicationStatus: CaseIterable{
+enum JobApplicationStatus: String, CaseIterable{
     case notApplied
     case applied
     case reviewing
