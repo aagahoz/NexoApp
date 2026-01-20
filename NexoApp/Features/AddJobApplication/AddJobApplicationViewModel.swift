@@ -28,7 +28,9 @@ final class AddJobApplicationViewModel {
         
         state = .saving
         
-        let newApplication = JobApplication(id: UUID(), title: title, company: company, status: status)
+        let now = Date()
+        
+        let newApplication = JobApplication(id: UUID(), title: title, company: company, status: status, createdAt: now, updatedAt: now)
         
         do {
             try await repository.addJobApplication(newApplication)

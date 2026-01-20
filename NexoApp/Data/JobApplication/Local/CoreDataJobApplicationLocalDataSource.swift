@@ -34,4 +34,15 @@ final class CoreDataJobApplicationLocalDataSource: JobApplicationLocalDataSource
         }
         try context.save()
     }
+    
+    func deleteJobApplication(id: UUID) async throws {
+        let request: NSFetchRequest<JobApplicationEntity> = JobApplicationEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        let results = try context.fetch(request)
+        
+        results.forEach { context.delete($0) }
+        
+        try context.save()
+    }
 }

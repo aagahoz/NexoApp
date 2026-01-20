@@ -12,14 +12,23 @@ final class AppCoordinator: Coordinator {
     var navigationController: UINavigationController
     private var childCoordinators: [Coordinator] = []
     
-    private let jobapplicationRepository: JobApplicationRepository
+    private let jobApplicationRepository: JobApplicationRepository
 
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
-//        self.jobapplicationRepository = MockJobApplicationRepository()
-        self.jobapplicationRepository =   LocalJobApplicationRepository(
-            localDataSource: CoreDataJobApplicationLocalDataSource()
+        
+//        self.jobApplicationRepository = MockJobApplicationRepository()
+
+//        self.jobApplicationRepository = LocalJobApplicationRepository(localDataSource: CoreDataJobApplicationLocalDataSource())
+        
+        let session = MockAuthenticatedSessionProvider()
+        let remoteDataSource = FirebaseJobApplicationRemoteDataSource()
+        self.jobApplicationRepository = RemoteJobApplicationRepository(
+            remoteDataSource: remoteDataSource,
+            session: session
         )
+        
+        
     }
 
     func start() {
@@ -29,7 +38,7 @@ final class AppCoordinator: Coordinator {
     private func showJobApplicationList() {
         let jobApplicationListCoordinator = JobApplicationListCoordinator(
             navigationController: navigationController,
-            repository: jobapplicationRepository
+            repository: jobApplicationRepository
         )
 
         childCoordinators.append(jobApplicationListCoordinator)

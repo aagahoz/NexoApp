@@ -37,6 +37,21 @@ final class JobApplicationListViewModel {
             }
         }
     }
+    
+    func deleteJobApplication(at index: Int) async {
+        guard case let .loaded(jobApplications) = state,
+              jobApplications.indices.contains(index)
+        else { return }
+
+        let job = jobApplications[index]
+
+        do {
+            try await repository.deleteJobApplication(id: job.id)
+            await load()
+        } catch {
+            state = .error(message: "Could not delete application")
+        }
+    }
 
     func didSelectJobApplication(at index: Int) {
         guard case let .loaded(jobApplications) = state,

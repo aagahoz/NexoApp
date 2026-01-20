@@ -14,7 +14,9 @@ extension JobApplicationEntity {
             id: id!,
             title: title ?? "",
             company: company ?? "",
-            status: JobApplicationStatus(rawValue: statusRawValue ?? "") ?? .notApplied
+            status: JobApplicationStatus(rawValue: statusRawValue ?? "") ?? .notApplied,
+            createdAt: createdAt ?? updatedAt ?? Date(),
+            updatedAt: updatedAt ?? createdAt ?? Date()
         )
     }
     
@@ -23,5 +25,7 @@ extension JobApplicationEntity {
         title = domain.title
         company = domain.company
         statusRawValue = domain.status.rawValue
+        createdAt = domain.createdAt
+        updatedAt = domain.updatedAt
     }
 }

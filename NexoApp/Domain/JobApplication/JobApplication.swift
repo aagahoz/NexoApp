@@ -12,4 +12,6 @@ struct JobApplication {
     let title: String
     let company: String
     let status: JobApplicationStatus
+    let createdAt: Date
+    let updatedAt: Date
 }

@@ -8,10 +8,14 @@
 import Foundation
 
 actor MockJobApplicationRepository: JobApplicationRepository {
+    func deleteJobApplication(id: UUID) async throws {
+        print("benim olmamam lazim")
+    }
     
+        
     private var applications: [JobApplication] = [
-        JobApplication(id: UUID(), title: "iOS Developer", company: "Nexo", status: .applied),
-        JobApplication(id: UUID(), title: "Junior iOS Developer", company: "Startup X", status: .reviewing)
+        JobApplication(id: UUID(), title: "iOS Developer", company: "Nexo", status: .applied, createdAt: Date(), updatedAt: Date()),
+        JobApplication(id: UUID(), title: "Junior iOS Developer", company: "Startup X", status: .reviewing, createdAt: Date(), updatedAt: Date())
     ]
     
     func fetchJobApplications() async throws -> [JobApplication] {
