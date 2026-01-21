@@ -8,4 +8,5 @@
 protocol SessionProvider {
     var isAuthenticated: Bool { get }
     var userId: String? { get }
+    func signOut() throws
 }

@@ -11,38 +11,54 @@ final class AppCoordinator: Coordinator {
 
     var navigationController: UINavigationController
     private var childCoordinators: [Coordinator] = []
-    
-    private let jobApplicationRepository: JobApplicationRepository
+
+    private let session: SessionProvider
 
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
-        
-//        self.jobApplicationRepository = MockJobApplicationRepository()
-
-//        self.jobApplicationRepository = LocalJobApplicationRepository(localDataSource: CoreDataJobApplicationLocalDataSource())
-        
-        let session = MockAuthenticatedSessionProvider()
-        let remoteDataSource = FirebaseJobApplicationRemoteDataSource()
-        self.jobApplicationRepository = RemoteJobApplicationRepository(
-            remoteDataSource: remoteDataSource,
-            session: session
-        )
-        
-        
+        self.session = FirebaseSessionProvider()
     }
 
     func start() {
-        showJobApplicationList()
+        navigationController.viewControllers = []
+
+        if session.isAuthenticated {
+            startAuthenticatedFlow()
+        } else {
+            startGuestFlow()
+        }
     }
 
-    private func showJobApplicationList() {
-        let jobApplicationListCoordinator = JobApplicationListCoordinator(
-            navigationController: navigationController,
-            repository: jobApplicationRepository
+    private func startGuestFlow() {
+        let repository = LocalJobApplicationRepository(
+            localDataSource: CoreDataJobApplicationLocalDataSource()
         )
 
-        childCoordinators.append(jobApplicationListCoordinator)
-        jobApplicationListCoordinator.start()
+        let coordinator = JobApplicationListCoordinator(
+            navigationController: navigationController,
+            repository: repository,
+            session: session,
+            showsLoginButton: true
+        )
+
+        childCoordinators = [coordinator]
+        coordinator.start()
+    }
+
+    private func startAuthenticatedFlow() {
+        let repository = RemoteJobApplicationRepository(
+            remoteDataSource: FirebaseJobApplicationRemoteDataSource(),
+            session: session
+        )
+
+        let coordinator = JobApplicationListCoordinator(
+            navigationController: navigationController,
+            repository: repository,
+            session: session,
+            showsLoginButton: false
+        )
+
+        childCoordinators = [coordinator]
+        coordinator.start()
     }
 }
-                             

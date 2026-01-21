@@ -12,6 +12,9 @@ final class JobApplicationListViewController: UIViewController {
 
     private let viewModel: JobApplicationListViewModel
     private var currentState: JobApplicationListViewState = .loading
+    private let showsLoginButton: Bool
+    var onLoginTapped: (() -> Void)?
+    var onLogoutTapped: (() -> Void)?
 
     // MARK: - UI
 
@@ -34,8 +37,9 @@ final class JobApplicationListViewController: UIViewController {
 
     // MARK: - Init
 
-    init(viewModel: JobApplicationListViewModel) {
+    init(viewModel: JobApplicationListViewModel, showsLoginButton: Bool) {
         self.viewModel = viewModel
+        self.showsLoginButton = showsLoginButton
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -56,6 +60,22 @@ final class JobApplicationListViewController: UIViewController {
             target: self,
             action: #selector(addTapped)
         )
+        
+        if showsLoginButton {
+            navigationItem.leftBarButtonItem = UIBarButtonItem(
+                title: "Login",
+                style: .plain,
+                target: self,
+                action: #selector(loginTapped)
+            )
+        } else {
+            navigationItem.leftBarButtonItem = UIBarButtonItem(
+                title: "Logout",
+                style: .plain,
+                target: self,
+                action: #selector(logoutTapped)
+            )
+        }
 
         setupHeader()
         setupTableView()
@@ -73,6 +93,14 @@ final class JobApplicationListViewController: UIViewController {
         Task {
             await viewModel.load()
         }
+    }
+    
+    @objc private func loginTapped() {
+        onLoginTapped?()
+    }
+    
+    @objc private func logoutTapped() {
+        onLogoutTapped?()
     }
     
     // MARK: - Setup
