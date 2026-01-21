@@ -13,16 +13,19 @@ final class JobApplicationListCoordinator: Coordinator {
     private let repository: JobApplicationRepository
     private let showsLoginButton: Bool
     private let session: SessionProvider
+    private let authService: AuthService
 
     init(
         navigationController: UINavigationController,
         repository: JobApplicationRepository,
         session: SessionProvider,
+        authService: AuthService,
         showsLoginButton: Bool
     ) {
         self.navigationController = navigationController
         self.repository = repository
         self.session = session
+        self.authService = authService
         self.showsLoginButton = showsLoginButton
     }
 
@@ -67,21 +70,19 @@ final class JobApplicationListCoordinator: Coordinator {
     }
     
     private func showLogin() {
-        let loginVC = LoginViewController()
-        let nav = UINavigationController(rootViewController: loginVC)
-        nav.modalPresentationStyle = .fullScreen
-        navigationController.present(nav, animated: true)
+        let coordinator = LoginCoordinator(
+            navigationController: navigationController,
+            authService: FirebaseAuthService()
+        )
+
+        coordinator.start()
     }
     
     private func handleLogout() {
         do {
-            try session.signOut()
+            try authService.signOut()
         } catch {
-            // basit alert de olur, log da
-            return
+            print("Logout failed: \(error)")
         }
-
-        // 🔁 ROOT FLOW RESET
-//        (navigationController.delegate as? AppCoordinator)?.start()
     }
 }

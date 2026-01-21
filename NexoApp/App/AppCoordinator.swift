@@ -33,11 +33,14 @@ final class AppCoordinator: Coordinator {
         let repository = LocalJobApplicationRepository(
             localDataSource: CoreDataJobApplicationLocalDataSource()
         )
+        
+        let authService = FirebaseAuthService()
 
         let coordinator = JobApplicationListCoordinator(
             navigationController: navigationController,
             repository: repository,
             session: session,
+            authService: authService,
             showsLoginButton: true
         )
 
@@ -50,11 +53,14 @@ final class AppCoordinator: Coordinator {
             remoteDataSource: FirebaseJobApplicationRemoteDataSource(),
             session: session
         )
+        
+        let authService = FirebaseAuthService()
 
         let coordinator = JobApplicationListCoordinator(
             navigationController: navigationController,
             repository: repository,
             session: session,
+            authService: authService,
             showsLoginButton: false
         )
 

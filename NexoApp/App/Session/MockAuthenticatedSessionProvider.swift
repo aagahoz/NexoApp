@@ -10,7 +10,4 @@ import Foundation
 final class MockAuthenticatedSessionProvider: SessionProvider {
     let isAuthenticated = true
     let userId: String? = "TEST_USER_ID2"
-    func signOut() throws {
-        
-    }
 }

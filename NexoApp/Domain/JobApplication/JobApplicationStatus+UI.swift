@@ -1,5 +1,5 @@
 //
-//  JobApplicationStatus+UI.swift .swift
+//  JobApplicationStatus+UI.swift
 //  NexoApp
 //
 //  Created by Agah Ozdemir on 17.01.2026.

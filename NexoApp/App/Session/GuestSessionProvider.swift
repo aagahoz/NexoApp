@@ -8,7 +8,4 @@
 final class GuestSessionProvider: SessionProvider {
     let isAuthenticated = false
     let userId: String? = nil
-    func signOut() throws {
-        
-    }
 }

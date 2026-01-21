@@ -1,6 +1,6 @@
 //
 //  MockJobApplicationRepository.swift
-//  Nexo-App-UIKit
+//  NexoApp
 //
 //  Created by Agah Ozdemir on 11.01.2026.
 //

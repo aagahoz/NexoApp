@@ -15,8 +15,4 @@ final class FirebaseSessionProvider: SessionProvider {
     var userId: String? {
         Auth.auth().currentUser?.uid
     }
-    
-    func signOut() throws {
-        try Auth.auth().signOut()
-    }
 }
