@@ -7,18 +7,17 @@
 
 import UIKit
 
-final class StatusSummaryViewModel {
-
+struct StatusSummaryViewModel: Hashable {
     let items: [StatusSummaryItem]
 
     init(applications: [JobApplication]) {
-        let grouped = Dictionary(grouping: applications, by: { $0.status })
+        let allStatuses: [JobApplicationStatus] = [.notApplied, .applied, .reviewing, .rejected, .accepted]
 
-        self.items = JobApplicationStatus.allCases.map { status in
-            StatusSummaryItem(
-                status: status,
-                count: grouped[status]?.count ?? 0
-            )
+        let counts = Dictionary(grouping: applications, by: { $0.status })
+            .mapValues { $0.count }
+
+        self.items = allStatuses.map { status in
+            StatusSummaryItem(status: status, count: counts[status, default: 0])
         }
     }
 }

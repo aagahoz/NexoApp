@@ -38,19 +38,29 @@ extension JobApplicationStatus {
             return .systemGreen
         }
     }
-    
+
     var symbolName: String {
         switch self {
+
         case .notApplied:
-            return "circle"
+            // Henüz aksiyon yok, pasif durum
+            return "briefcase"
+
         case .applied:
-            return "paperplane"
+            // Başvuru yapılmış, outbound aksiyon
+            return "paperplane.fill"
+
         case .reviewing:
-            return "hourglass"
+            // İnceleme / süreç devam ediyor
+            return "clock.badge.checkmark"
+
         case .accepted:
-            return "checkmark.circle"
+            // Başarılı sonuç
+            return "checkmark.seal.fill"
+
         case .rejected:
-            return "xmark.circle"
+            // Net olumsuz sonuç
+            return "xmark.seal.fill"
         }
     }
 }

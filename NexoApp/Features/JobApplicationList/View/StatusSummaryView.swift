@@ -9,74 +9,85 @@ import UIKit
 
 final class StatusSummaryView: UIView {
 
-    private let scrollView = UIScrollView()
-    private let stackView = UIStackView()
+    private var items: [StatusSummaryItem] = []
 
-    private var cards: [JobApplicationStatus: StatusCardView] = [:]
+    private lazy var collectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.minimumLineSpacing = 12
+        layout.minimumInteritemSpacing = 12
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        cv.showsHorizontalScrollIndicator = false
+        cv.backgroundColor = .clear
+        cv.dataSource = self
+        cv.delegate = self
+        cv.register(StatusCardCell.self, forCellWithReuseIdentifier: StatusCardCell.reuseIdentifier)
+        return cv
+    }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupLayout()
-        createCards()
+        setup()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func update(with viewModel: StatusSummaryViewModel) {
-           for item in viewModel.items {
-               cards[item.status]?.configure(
-                   status: item.status,
-                   count: item.count
-               )
-           }
-       }
-
-    private func setupLayout() {
-        addSubview(scrollView)
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
+    private func setup() {
+        backgroundColor = .clear
+        addSubview(collectionView)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor)
-        ])
-
-        scrollView.showsHorizontalScrollIndicator = false
-
-        stackView.axis = .horizontal
-        stackView.spacing = 12
-        stackView.alignment = .fill
-        stackView.distribution = .fill
-
-        scrollView.addSubview(stackView)
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-
-        NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 12),
-            stackView.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor, constant: 16),
-            stackView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor, constant: -16),
-            stackView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -12),
-
-            stackView.heightAnchor.constraint(
-                equalTo: scrollView.frameLayoutGuide.heightAnchor,
-                constant: -24
-            )
+            collectionView.topAnchor.constraint(equalTo: topAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
 
-    private func createCards() {
-        JobApplicationStatus.allCases.forEach { status in
-            let card = StatusCardView()
-            card.configure(status: status, count: 0)
+    func update(applications: [JobApplication]) {
+        // Status bazında sayım
+        let grouped = Dictionary(grouping: applications, by: { $0.status })
+        let allStatuses: [JobApplicationStatus] = [.notApplied, .applied, .reviewing, .rejected, .accepted]
 
-            // Kartın küçülmemesi için
-            card.widthAnchor.constraint(equalToConstant: 100).isActive = true
-
-            cards[status] = card
-            stackView.addArrangedSubview(card)
+        items = allStatuses.map { status in
+            StatusSummaryItem(status: status, count: grouped[status]?.count ?? 0)
         }
+
+        collectionView.reloadData()
+    }
+}
+
+extension StatusSummaryView: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        items.count
+    }
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard
+            let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: StatusCardCell.reuseIdentifier,
+                for: indexPath
+            ) as? StatusCardCell
+        else { return UICollectionViewCell() }
+
+        cell.configure(with: items[indexPath.item])
+        return cell
+    }
+}
+
+extension StatusSummaryView: UICollectionViewDelegateFlowLayout {
+    func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        sizeForItemAt indexPath: IndexPath
+    ) -> CGSize {
+        // “Sıkışmasın” ve güzel kaydırılsın diye sabit, okunaklı bir genişlik.
+        // İstersen ekran genişliğine göre dinamik de yaparız.
+        return CGSize(width: 120, height: collectionView.bounds.height)
     }
 }

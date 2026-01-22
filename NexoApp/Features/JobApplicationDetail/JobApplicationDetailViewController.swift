@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class JobApplicationDetailViewController: UIViewController {
+final class JobApplicationDetailViewController: GradientViewController {
 
     private let jobApplication: JobApplication
 

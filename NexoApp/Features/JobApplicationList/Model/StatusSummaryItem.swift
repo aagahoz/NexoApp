@@ -5,7 +5,7 @@
 //  Created by Agah Ozdemir on 18.01.2026.
 //
 
-struct StatusSummaryItem {
+struct StatusSummaryItem: Hashable {
     let status: JobApplicationStatus
     let count: Int
 }
