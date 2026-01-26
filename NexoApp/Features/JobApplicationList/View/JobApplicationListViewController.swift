@@ -32,16 +32,18 @@ final class JobApplicationListViewController: GradientViewController {
         static let headerHorizontalPadding: CGFloat = 16
         static let headerBottomPadding: CGFloat = 8
         static let dividerHeight: CGFloat = 1 / UIScreen.main.scale
+
+        static let headerBottomSpacingToTable: CGFloat = 8
     }
 
+    // Header içerikleri (table header içinde yaşayacak)
     private let summaryView = StatusSummaryView()
 
-    // Recent Activity header area
     private let activityHeaderView = UIView()
 
     private let activityTitleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Recent Activity"
+        label.text = "Recent Activities"
         label.font = .preferredFont(forTextStyle: .headline)
         label.textColor = .label
         label.numberOfLines = 1
@@ -55,8 +57,10 @@ final class JobApplicationListViewController: GradientViewController {
         return v
     }()
 
+    // Table
     private let tableView = UITableView()
 
+    // Overlays
     private let emptyLabel: UILabel = {
         let label = UILabel()
         label.text = "No Application found"
@@ -71,6 +75,16 @@ final class JobApplicationListViewController: GradientViewController {
         indicator.hidesWhenStopped = true
         return indicator
     }()
+
+    // MARK: - Table Header Container
+
+    private let headerContainerView = UIView()
+    private let headerStack = UIStackView()
+
+    // Header’ın görünür olup olmadığını tek yerden yönetelim
+    private var isHeaderVisible: Bool = false {
+        didSet { updateTableHeaderVisibility() }
+    }
 
     // MARK: - Init
 
@@ -91,11 +105,9 @@ final class JobApplicationListViewController: GradientViewController {
 
         configureAppearance()
         configureNavigationBar()
-        configureHierarchy()
-        configureConstraints()
-        configureActivityHeader()
         configureTableView()
         configureOverlays()
+        configureTableHeader()
         bindViewModel()
 
         Task { await viewModel.load() }
@@ -106,11 +118,18 @@ final class JobApplicationListViewController: GradientViewController {
         Task { await viewModel.load() }
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // tableHeaderView Auto Layout ile otomatik boyutlanmadığı için
+        // her layout sonrası header yüksekliğini güncelliyoruz.
+        updateTableHeaderHeightIfNeeded()
+    }
+
     // MARK: - Configure
 
     private func configureAppearance() {
-        title = "Job Applications"
-        tableView.backgroundColor = .clear
+        title = "Applications"
+        view.backgroundColor = .clear
     }
 
     private func configureNavigationBar() {
@@ -128,70 +147,17 @@ final class JobApplicationListViewController: GradientViewController {
         )
     }
 
-    private func configureHierarchy() {
-        view.addSubview(summaryView)
-        view.addSubview(activityHeaderView)
+    private func configureTableView() {
         view.addSubview(tableView)
-        view.addSubview(emptyLabel)
-        view.addSubview(loadingIndicator)
-
-        activityHeaderView.addSubview(activityTitleLabel)
-        activityHeaderView.addSubview(activityDividerView)
-    }
-
-    private func configureConstraints() {
-        summaryView.translatesAutoresizingMaskIntoConstraints = false
-        activityHeaderView.translatesAutoresizingMaskIntoConstraints = false
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        emptyLabel.translatesAutoresizingMaskIntoConstraints = false
-        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
-
-        activityTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        activityDividerView.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            // Summary
-            summaryView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            summaryView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            summaryView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            summaryView.heightAnchor.constraint(equalToConstant: Layout.summaryHeight),
-
-            // Activity Header (Recent Activity)
-            activityHeaderView.topAnchor.constraint(equalTo: summaryView.bottomAnchor, constant: Layout.headerTopPadding),
-            activityHeaderView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            activityHeaderView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-
-            activityTitleLabel.topAnchor.constraint(equalTo: activityHeaderView.topAnchor),
-            activityTitleLabel.leadingAnchor.constraint(equalTo: activityHeaderView.leadingAnchor, constant: Layout.headerHorizontalPadding),
-            activityTitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: activityHeaderView.trailingAnchor, constant: -Layout.headerHorizontalPadding),
-
-            activityDividerView.topAnchor.constraint(equalTo: activityTitleLabel.bottomAnchor, constant: Layout.headerBottomPadding),
-            activityDividerView.leadingAnchor.constraint(equalTo: activityHeaderView.leadingAnchor, constant: Layout.headerHorizontalPadding),
-            activityDividerView.trailingAnchor.constraint(equalTo: activityHeaderView.trailingAnchor, constant: -Layout.headerHorizontalPadding),
-            activityDividerView.heightAnchor.constraint(equalToConstant: Layout.dividerHeight),
-            activityDividerView.bottomAnchor.constraint(equalTo: activityHeaderView.bottomAnchor),
-
-            // Table
-            tableView.topAnchor.constraint(equalTo: activityHeaderView.bottomAnchor),
+            tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
-            // Overlays
-            emptyLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            emptyLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-
-            loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-    }
 
-    private func configureActivityHeader() {
-        activityHeaderView.backgroundColor = .clear
-        activityTitleLabel.setContentCompressionResistancePriority(.required, for: .vertical)
-    }
-
-    private func configureTableView() {
         tableView.dataSource = self
         tableView.delegate = self
 
@@ -200,13 +166,9 @@ final class JobApplicationListViewController: GradientViewController {
             forCellReuseIdentifier: JobApplicationCell.reuseIdentifier
         )
 
-        // Card görünümünde separator kullanılmaz
         tableView.separatorStyle = .none
-
-        // Listenin üst-alt nefes alması (card spacing daha premium görünür)
         tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 16, right: 0)
 
-        // Otomatik yükseklik daha stabil olsun
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 92
 
@@ -214,8 +176,84 @@ final class JobApplicationListViewController: GradientViewController {
     }
 
     private func configureOverlays() {
+        view.addSubview(emptyLabel)
+        view.addSubview(loadingIndicator)
+
+        emptyLabel.translatesAutoresizingMaskIntoConstraints = false
+        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            emptyLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+
+            loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+
         emptyLabel.isHidden = true
         loadingIndicator.stopAnimating()
+    }
+
+    private func configureTableHeader() {
+        // 1) activityHeaderView içini kur
+        activityHeaderView.backgroundColor = .clear
+        activityHeaderView.addSubview(activityTitleLabel)
+        activityHeaderView.addSubview(activityDividerView)
+
+        activityTitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        activityDividerView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            activityTitleLabel.topAnchor.constraint(equalTo: activityHeaderView.topAnchor),
+            activityTitleLabel.leadingAnchor.constraint(equalTo: activityHeaderView.leadingAnchor, constant: Layout.headerHorizontalPadding),
+            activityTitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: activityHeaderView.trailingAnchor, constant: -Layout.headerHorizontalPadding),
+
+            activityDividerView.topAnchor.constraint(equalTo: activityTitleLabel.bottomAnchor, constant: Layout.headerBottomPadding),
+            activityDividerView.leadingAnchor.constraint(equalTo: activityHeaderView.leadingAnchor, constant: Layout.headerHorizontalPadding),
+            activityDividerView.trailingAnchor.constraint(equalTo: activityHeaderView.trailingAnchor, constant: -Layout.headerHorizontalPadding),
+            activityDividerView.heightAnchor.constraint(equalToConstant: Layout.dividerHeight),
+            activityDividerView.bottomAnchor.constraint(equalTo: activityHeaderView.bottomAnchor)
+        ])
+
+        // 2) headerStack kur (summary + header + biraz spacing)
+        headerStack.axis = .vertical
+        headerStack.alignment = .fill
+        headerStack.distribution = .fill
+        headerStack.spacing = 0
+
+        headerContainerView.addSubview(headerStack)
+        headerStack.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            headerStack.topAnchor.constraint(equalTo: headerContainerView.topAnchor),
+            headerStack.leadingAnchor.constraint(equalTo: headerContainerView.leadingAnchor),
+            headerStack.trailingAnchor.constraint(equalTo: headerContainerView.trailingAnchor),
+            headerStack.bottomAnchor.constraint(equalTo: headerContainerView.bottomAnchor)
+        ])
+
+        // Summary sabit yükseklik
+        summaryView.translatesAutoresizingMaskIntoConstraints = false
+        summaryView.heightAnchor.constraint(equalToConstant: Layout.summaryHeight).isActive = true
+
+        // Header’ı summary’den sonra aşağı itmek için padding hissi
+        let headerTopSpacer = UIView()
+        headerTopSpacer.translatesAutoresizingMaskIntoConstraints = false
+        headerTopSpacer.heightAnchor.constraint(equalToConstant: Layout.headerTopPadding).isActive = true
+
+        let headerBottomSpacer = UIView()
+        headerBottomSpacer.translatesAutoresizingMaskIntoConstraints = false
+        headerBottomSpacer.heightAnchor.constraint(equalToConstant: Layout.headerBottomSpacingToTable).isActive = true
+
+        headerStack.addArrangedSubview(summaryView)
+        headerStack.addArrangedSubview(headerTopSpacer)
+        headerStack.addArrangedSubview(activityHeaderView)
+        headerStack.addArrangedSubview(headerBottomSpacer)
+
+        // 3) tableHeaderView olarak bağla
+        tableView.tableHeaderView = headerContainerView
+
+        // İlk açılışta header’ı gizleyelim (state’e göre açacağız)
+        isHeaderVisible = false
     }
 
     private func bindViewModel() {
@@ -254,51 +292,39 @@ final class JobApplicationListViewController: GradientViewController {
         switch state {
 
         case .loading:
-            setSummaryVisible(false)
-            setHeaderVisible(false)
+            isHeaderVisible = false
             setTableVisible(false)
             setEmptyVisible(false)
             setLoadingVisible(true)
 
         case .empty:
-            setSummaryVisible(false)
-            setHeaderVisible(false)
+            isHeaderVisible = false
             setTableVisible(false)
             setLoadingVisible(false)
             setEmptyVisible(true)
 
         case .loaded(let applications):
+            isHeaderVisible = true
             setLoadingVisible(false)
             setEmptyVisible(false)
-            setSummaryVisible(true)
-            setHeaderVisible(true)
             setTableVisible(true)
 
             summaryView.update(applications: applications)
-            setActivityTitle("Recent Activity")
+            setActivityTitle("Recent Activities")
 
             tableView.reloadData()
+            updateTableHeaderHeightIfNeeded() // içerik değiştiği için header boyu güncellensin
 
         case .error(let message, let retry):
-            setSummaryVisible(false)
-            setHeaderVisible(false)
+            isHeaderVisible = false
             setTableVisible(false)
             setEmptyVisible(false)
             setLoadingVisible(false)
-
             presentErrorAlert(message: message, retry: retry)
         }
     }
 
-    // MARK: - UI State Helpers
-
-    private func setSummaryVisible(_ isVisible: Bool) {
-        summaryView.isHidden = !isVisible
-    }
-
-    private func setHeaderVisible(_ isVisible: Bool) {
-        activityHeaderView.isHidden = !isVisible
-    }
+    // MARK: - Visibility Helpers
 
     private func setTableVisible(_ isVisible: Bool) {
         tableView.isHidden = !isVisible
@@ -312,6 +338,53 @@ final class JobApplicationListViewController: GradientViewController {
         if isVisible { loadingIndicator.startAnimating() }
         else { loadingIndicator.stopAnimating() }
     }
+
+    // MARK: - Header Sizing (Critical)
+
+    private func updateTableHeaderVisibility() {
+        // tableHeaderView nil olursa header tamamen gider; tekrar set edilince geri gelir.
+        // Bu yöntem hem performans hem de scroll davranışı açısından temiz.
+        if isHeaderVisible {
+            if tableView.tableHeaderView == nil {
+                tableView.tableHeaderView = headerContainerView
+            }
+        } else {
+            tableView.tableHeaderView = nil
+        }
+        updateTableHeaderHeightIfNeeded()
+    }
+
+    private func updateTableHeaderHeightIfNeeded() {
+        guard isHeaderVisible else { return }
+        guard tableView.tableHeaderView === headerContainerView else { return }
+
+        // tableHeaderView genişliği tableView’a eşit olmalı ki Auto Layout doğru ölçsün.
+        let targetWidth = tableView.bounds.width
+        guard targetWidth > 0 else { return }
+
+        headerContainerView.bounds = CGRect(
+            x: 0,
+            y: 0,
+            width: targetWidth,
+            height: headerContainerView.bounds.height
+        )
+
+        // Auto Layout ile gereken yüksekliği hesapla
+        let fittingSize = CGSize(width: targetWidth, height: UIView.layoutFittingCompressedSize.height)
+        let calculatedHeight = headerContainerView.systemLayoutSizeFitting(
+            fittingSize,
+            withHorizontalFittingPriority: .required,
+            verticalFittingPriority: .fittingSizeLevel
+        ).height
+
+        // Yükseklik değiştiyse yeniden set et (tableHeaderView bunu istiyor)
+        if headerContainerView.frame.height != calculatedHeight {
+            headerContainerView.frame.size.height = calculatedHeight
+            tableView.tableHeaderView = headerContainerView
+        }
+    }
+
+    // MARK: - Error Alert
 
     private func presentErrorAlert(message: String, retry: (() -> Void)?) {
         let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)

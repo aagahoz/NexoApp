@@ -12,37 +12,34 @@ final class JobApplicationListCoordinator: Coordinator {
     var navigationController: UINavigationController
     private let repository: JobApplicationRepository
     private let showsLoginButton: Bool
-    private let session: SessionProvider
     private let authService: AuthService
+
+    private var childCoordinators: [Coordinator] = []
 
     init(
         navigationController: UINavigationController,
         repository: JobApplicationRepository,
-        session: SessionProvider,
         authService: AuthService,
         showsLoginButton: Bool
     ) {
         self.navigationController = navigationController
         self.repository = repository
-        self.session = session
         self.authService = authService
         self.showsLoginButton = showsLoginButton
     }
 
     func start() {
-        let viewModel = JobApplicationListViewModel(
-            repository: repository
-        )
+        let viewModel = JobApplicationListViewModel(repository: repository)
 
         let jobApplicationListVC = JobApplicationListViewController(
             viewModel: viewModel,
             showsLoginButton: showsLoginButton
         )
-        
+
         jobApplicationListVC.onLoginTapped = { [weak self] in
             self?.showLogin()
         }
-        
+
         jobApplicationListVC.onLogoutTapped = { [weak self] in
             self?.handleLogout()
         }
@@ -57,8 +54,8 @@ final class JobApplicationListCoordinator: Coordinator {
 
         navigationController.pushViewController(jobApplicationListVC, animated: true)
     }
-    
-    func showAddJobApplication() {
+
+    private func showAddJobApplication() {
         let viewModel = AddJobApplicationViewModel(repository: repository)
         let vc = AddJobApplicationViewController(viewModel: viewModel)
         navigationController.pushViewController(vc, animated: true)
@@ -68,21 +65,37 @@ final class JobApplicationListCoordinator: Coordinator {
         let detailVC = JobApplicationDetailViewController(jobApplication: jobApplication)
         navigationController.pushViewController(detailVC, animated: true)
     }
-    
+
     private func showLogin() {
         let coordinator = LoginCoordinator(
             navigationController: navigationController,
-            authService: FirebaseAuthService()
+            authService: authService
         )
 
+        coordinator.onFinish = { [weak self, weak coordinator] in
+            guard let self, let coordinator else { return }
+            self.removeChild(coordinator)
+        }
+
+        addChild(coordinator)
         coordinator.start()
     }
-    
+
     private func handleLogout() {
         do {
             try authService.signOut()
         } catch {
             print("Logout failed: \(error)")
         }
+    }
+
+    // MARK: - Child coordinator management
+
+    private func addChild(_ coordinator: Coordinator) {
+        childCoordinators.append(coordinator)
+    }
+
+    private func removeChild(_ coordinator: Coordinator) {
+        childCoordinators.removeAll { $0 === coordinator as AnyObject }
     }
 }

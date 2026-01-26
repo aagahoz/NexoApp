@@ -13,55 +13,38 @@ final class AppCoordinator: Coordinator {
     private var childCoordinators: [Coordinator] = []
 
     private let session: SessionProvider
+    private let authService: AuthService
 
     init(navigationController: UINavigationController) {
         self.navigationController = navigationController
         self.session = FirebaseSessionProvider()
+        self.authService = FirebaseAuthService()
     }
 
     func start() {
-        navigationController.viewControllers = []
+        navigationController.setViewControllers([], animated: false)
+
+        let repository: JobApplicationRepository
+        let showsLoginButton: Bool
 
         if session.isAuthenticated {
-            startAuthenticatedFlow()
+            repository = RemoteJobApplicationRepository(
+                remoteDataSource: FirebaseJobApplicationRemoteDataSource(),
+                session: session
+            )
+            showsLoginButton = false
         } else {
-            startGuestFlow()
+            repository = LocalJobApplicationRepository(
+                localDataSource: CoreDataJobApplicationLocalDataSource()
+            )
+            showsLoginButton = true
         }
-    }
-
-    private func startGuestFlow() {
-        let repository = LocalJobApplicationRepository(
-            localDataSource: CoreDataJobApplicationLocalDataSource()
-        )
-        
-        let authService = FirebaseAuthService()
 
         let coordinator = JobApplicationListCoordinator(
             navigationController: navigationController,
             repository: repository,
-            session: session,
             authService: authService,
-            showsLoginButton: true
-        )
-
-        childCoordinators = [coordinator]
-        coordinator.start()
-    }
-
-    private func startAuthenticatedFlow() {
-        let repository = RemoteJobApplicationRepository(
-            remoteDataSource: FirebaseJobApplicationRemoteDataSource(),
-            session: session
-        )
-        
-        let authService = FirebaseAuthService()
-
-        let coordinator = JobApplicationListCoordinator(
-            navigationController: navigationController,
-            repository: repository,
-            session: session,
-            authService: authService,
-            showsLoginButton: false
+            showsLoginButton: showsLoginButton
         )
 
         childCoordinators = [coordinator]

@@ -50,11 +50,9 @@ final class StatusSummaryView: UIView {
     }
 
     func update(applications: [JobApplication]) {
-        // Status bazında sayım
         let grouped = Dictionary(grouping: applications, by: { $0.status })
-        let allStatuses: [JobApplicationStatus] = [.notApplied, .applied, .reviewing, .rejected, .accepted]
 
-        items = allStatuses.map { status in
+        items = JobApplicationStatus.allCases.map { status in
             StatusSummaryItem(status: status, count: grouped[status]?.count ?? 0)
         }
 
@@ -86,8 +84,6 @@ extension StatusSummaryView: UICollectionViewDelegateFlowLayout {
         layout collectionViewLayout: UICollectionViewLayout,
         sizeForItemAt indexPath: IndexPath
     ) -> CGSize {
-        // “Sıkışmasın” ve güzel kaydırılsın diye sabit, okunaklı bir genişlik.
-        // İstersen ekran genişliğine göre dinamik de yaparız.
         return CGSize(width: 120, height: collectionView.bounds.height)
     }
 }
